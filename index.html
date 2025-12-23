@@ -13,7 +13,39 @@
         .unit { font-size: 1rem; color: #95a5a6; }
         .status { margin-top: 10px; font-weight: bold; font-size: 1.1rem; }
         #date-time { margin-bottom: 15px; font-size: 1.2rem; font-weight: bold; color: #2c3e50; }
+	
+	/* การตั้งค่าเดิม (สำหรับ Desktop) */
+	.grid { 
+    		display: flex; 
+    		justify-content: center; 
+    		gap: 20px; 
+    		flex-wrap: wrap; 
+}
+
+.card { 
+    background: white; 
+    padding: 25px; 
+    border-radius: 15px; 
+    width: 250px; 
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+}
+
+/* --- ส่วนที่ทำให้รองรับมือถือ (Responsive) --- */
+@media (max-width: 600px) {
+    .grid {
+        flex-direction: column; /* สั่งให้การ์ดเรียงต่อกันเป็นแนวตั้ง */
+        align-items: center;
+    }
+    .card {
+        width: 90%; /* ให้การ์ดกว้างเต็มจอมือถือ */
+        margin-bottom: 15px;
+    }
+    .value {
+        font-size: 3rem; /* ขยายตัวเลขให้ใหญ่ขึ้นในมือถือ */
+    }
+}
     </style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
 
@@ -124,11 +156,11 @@
                 lStat.style.color = "orange"; 
             }
             else if (realLux >= 10000 && realLux <= 50000) { 
-                lStat.innerHTML = "✅ แสงพอเหมาะ<br>OPTIMAL"; 
+                lStat.innerHTML = "✅ แสงพอเหมาะ<br>"; 
                 lStat.style.color = "green"; 
             }
             else { 
-                lStat.innerHTML = "☀️ แสงจ้าเกินไป<br>Excessive"; 
+                lStat.innerHTML = "☀️ แสงจ้าเกินไป<br>"; 
                 lStat.style.color = "red"; 
             }
         }
