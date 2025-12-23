@@ -4,28 +4,73 @@
     <meta charset="UTF-8">
     <title>Brassica Smart Monitoring</title>
     <style>
-        body { font-family: 'Arial', sans-serif; background: #f0f4f7; text-align: center; margin: 0; padding: 20px; }
-        .header { background: #27ae60; color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-        .grid { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
-        .card { background: white; padding: 25px; border-radius: 15px; width: 220px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .label { color: #7f8c8d; font-size: 1.1rem; }
-        .value { font-size: 2.5rem; font-weight: bold; color: #2c3e50; margin: 10px 0; }
-        .unit { font-size: 1rem; color: #95a5a6; }
-        .status { margin-top: 10px; font-weight: bold; font-size: 1.1rem; }
-        #date-time { margin-bottom: 15px; font-size: 1.2rem; font-weight: bold; color: #2c3e50; }
+    body { 
+        font-family: 'Arial', sans-serif; 
+        background: #f0f4f7; 
+        text-align: center; 
+        margin: 0; 
+        padding: 20px; 
+        /* เพิ่มเพื่อให้เนื้อหาอยู่กลางหน้าจอแนวนอน */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .header { 
+        background: #27ae60; 
+        color: white; 
+        padding: 20px; 
+        border-radius: 10px; 
+        margin-bottom: 20px; 
+        width: 100%; /* ให้กว้างเต็มพื้นที่แต่ไม่เกิน container */
+        max-width: 800px;
+    }
 
-	/* การตั้งค่าเดิม (สำหรับ Desktop) */
-	.grid { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
-	.card { background: white; padding: 25px; border-radius: 15px; width: 250px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-	/* --- ส่วนที่ทำให้รองรับมือถือ (Responsive) --- */
-	@media (max-width: 600px) {
-    	.grid {  flex-direction: column; /* สั่งให้การ์ดเรียงต่อกันเป็นแนวตั้ง */ 
-align-items: center;}
-        .card { width: 90%; /* ให้การ์ดกว้างเต็มจอมือถือ */ 
-margin-bottom: 15px;}
-    .value { font-size: 3rem; /* ขยายตัวเลขให้ใหญ่ขึ้นในมือถือ */ }
-}
-    </style>
+    .grid { 
+        display: flex; 
+        justify-content: center; 
+        gap: 20px; 
+        flex-wrap: wrap; 
+        width: 100%;
+    }
+
+    .card { 
+        background: white; 
+        padding: 25px; 
+        border-radius: 15px; 
+        width: 250px; 
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+    }
+
+    .label { color: #7f8c8d; font-size: 1.1rem; }
+    .value { font-size: 2.5rem; font-weight: bold; color: #2c3e50; margin: 10px 0; }
+    .unit { font-size: 1rem; color: #95a5a6; }
+    .status { margin-top: 10px; font-weight: bold; font-size: 1.1rem; }
+    #date-time { margin-bottom: 15px; font-size: 1.2rem; font-weight: bold; color: #2c3e50; }
+
+    /* --- ส่วนที่ทำให้รองรับมือถือ (Responsive) --- */
+    @media (max-width: 600px) {
+        body {
+            padding: 10px; /* ลด padding ขอบจอลงเล็กน้อย */
+        }
+        .grid { 
+            flex-direction: column; 
+            align-items: center; /* จัดการ์ดให้อยู่กลางแนวตั้ง */
+            gap: 15px;
+        }
+        .card { 
+            width: 85%; /* ปรับความกว้างการ์ดให้พอดีกับมือถือ */
+            max-width: 300px; /* ไม่ให้ใหญ่เกินไปในมือถือจอใหญ่ */
+            margin: 0 auto; /* สั่งกึ่งกลาง */
+        }
+        .value { 
+            font-size: 2.8rem; /* ปรับขนาดตัวเลขให้พอดีกับจอ */
+        }
+        .header h1 {
+            font-size: 1.5rem; /* ลดขนาดหัวข้อลงหน่อยเพื่อให้ไม่ล้น */
+        }
+    }
+</style>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
