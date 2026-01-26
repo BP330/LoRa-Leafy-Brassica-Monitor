@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Brassica Smart Monitoring</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
     body { 
         font-family: 'Arial', sans-serif; 
@@ -42,6 +43,17 @@
         box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
     }
 
+    /* ตกแต่งกล่องกราฟ */
+    .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+    }
+
     .label { color: #7f8c8d; font-size: 1.1rem; }
     .value { font-size: 2.5rem; font-weight: bold; color: #2c3e50; margin: 10px 0; }
     .unit { font-size: 1rem; color: #95a5a6; }
@@ -63,15 +75,12 @@
             max-width: 300px; /* ไม่ให้ใหญ่เกินไปในมือถือจอใหญ่ */
             margin: 0 auto; /* สั่งกึ่งกลาง */
         }
-        .value { 
-            font-size: 2.8rem; /* ปรับขนาดตัวเลขให้พอดีกับจอ */
-        }
-        .header h1 {
-            font-size: 1.5rem; /* ลดขนาดหัวข้อลงหน่อยเพื่อให้ไม่ล้น */
-        }
+        .value { font-size: 2.8rem; }/* ปรับขนาดตัวเลขให้พอดีกับจอ */
+        .header h1 { font-size: 1.5rem; } /* ลดขนาดหัวข้อลงหน่อยเพื่อให้ไม่ล้น */
+	.chart-container { width: 95%; }
     }
-</style>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	</style>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
 
@@ -103,6 +112,10 @@
         </div>
     </div>
 
+    <div class="chart-container">
+        <div class="label" style="margin-bottom: 15px;">📊 แนวโน้มความชื้นและอุณหภูมิย้อนหลัง</div>
+        <canvas id="historyChart"></canvas>
+    </div>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -122,6 +135,9 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const sensorRef = ref(db, 'sensor_data');
+	const historyRef = ref(db, 'sensor_history');
+
+        let myChart; // ตัวแปรเก็บ Instance ของกราฟ
 
         // อัปเดตเวลาให้เป็นปัจจุบัน
         function updateClock() {
@@ -130,6 +146,62 @@
             document.getElementById('date-time').innerText = "ข้อมูลล่าสุดเมื่อ: " + now.toLocaleDateString('th-TH', options);
         }
         setInterval(updateClock, 1000);
+
+        // --- 3. Logic สำหรับดึงข้อมูล Log มาวาดกราฟ ---
+        onValue(historyRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                // ดึงข้อมูลออกมาเป็น Array (ดึงจากรหัสสุ่ม Push ID)
+                const logEntries = Object.values(data);
+                
+                // แยกค่าเวลา, อุณหภูมิ, ความชื้น
+                const labels = logEntries.map(entry => entry.time || "--:--");
+                const tempValues = logEntries.map(entry => parseFloat(entry.temp));
+                const humValues = logEntries.map(entry => parseFloat(entry.humidity));
+
+                renderChart(labels, tempValues, humValues);
+            }
+        });
+
+        function renderChart(labels, tempPoints, humPoints) {
+            const ctx = document.getElementById('historyChart').getContext('2d');
+            
+            if (myChart) { myChart.destroy(); } // ลบกราฟเก่าก่อนวาดใหม่
+
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'ความชื้น (%)',
+                            data: humPoints,
+                            borderColor: '#3498db',
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'อุณหภูมิ (°C)',
+                            data: tempPoints,
+                            borderColor: '#e74c3c',
+                            backgroundColor: 'transparent',
+                            fill: false,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
 
         // ฟังก์ชันเช็คสถานะ
         function checkStatus(temp, humidity, realLux) {
