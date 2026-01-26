@@ -100,7 +100,7 @@
     </div>
 
     <div class="chart-container">
-        <div class="label" style="margin-bottom: 15px;">📊 แนวโน้มอุณหภูมิ ความชื้น และความเข้มแสง ย้อนหลัง</div>
+        <div class="label" style="margin-bottom: 15px;">📊 แนวโน้มความชื้นและอุณหภูมิย้อนหลัง</div>
         <canvas id="historyChart"></canvas>
     </div>
 
@@ -149,21 +149,22 @@
         // --- 3. Logic สำหรับดึงข้อมูล Log มาวาดกราฟ ---
         onValue(historyRef, (snapshot) => {
             const data = snapshot.val();
-           if (data) {
-        const logEntries = Object.values(data);
-        const labels = logEntries.map(entry => entry.time || "--:--");
-        const tempValues = logEntries.map(entry => parseFloat(entry.temp) || 0);
-        const humValues = logEntries.map(entry => parseFloat(entry.humidity) || 0);
-        const lightValues = logEntries.map(entry => parseFloat(entry.light) || 0); // ดึงค่าแสง
+            if (data) {
+                // ดึงข้อมูลออกมาเป็น Array (ดึงจากรหัสสุ่ม Push ID)
+                const logEntries = Object.values(data);
+                
+                // แยกค่าเวลา, อุณหภูมิ, ความชื้น
+                const labels = logEntries.map(entry => entry.time || "--:--");
+                const tempValues = logEntries.map(entry => parseFloat(entry.temp));
+                const humValues = logEntries.map(entry => parseFloat(entry.humidity));
 
-        // *** จุดสำคัญ: ต้องส่งให้ครบ 4 ตัวแปร ***
-        renderChart(labels, tempValues, humValues, lightValues); 
-    }
+                renderChart(labels, tempValues, humValues,);
+            }
         });
 
         function renderChart(labels, tempPoints, humPoints) {
             const ctx = document.getElementById('historyChart').getContext('2d');
-          if (myChart) { myChart.destroy(); } // ลบกราฟเก่าก่อนวาดใหม่
+            if (myChart) { myChart.destroy(); } // ลบกราฟเก่าก่อนวาดใหม่
 
             myChart = new Chart(ctx, {
                 type: 'line',
