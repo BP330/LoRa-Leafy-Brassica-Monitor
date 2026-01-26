@@ -149,60 +149,53 @@
         // --- 3. Logic สำหรับดึงข้อมูล Log มาวาดกราฟ ---
         onValue(historyRef, (snapshot) => {
             const data = snapshot.val();
-            if (data) {
-                // ดึงข้อมูลออกมาเป็น Array (ดึงจากรหัสสุ่ม Push ID)
-                const logEntries = Object.values(data);
-                
-                // แยกค่าเวลา, อุณหภูมิ, ความชื้น
-                const labels = logEntries.map(entry => entry.time || "--:--");
-                const tempValues = logEntries.map(entry => parseFloat(entry.temp));
-                const humValues = logEntries.map(entry => parseFloat(entry.humidity));
-                const lightValues = logEntries.map(entry => parseFloat(entry.light) || 0);
+           if (data) {
+        const logEntries = Object.values(data);
+        const labels = logEntries.map(entry => entry.time || "--:--");
+        const tempValues = logEntries.map(entry => parseFloat(entry.temp) || 0);
+        const humValues = logEntries.map(entry => parseFloat(entry.humidity) || 0);
+        const lightValues = logEntries.map(entry => parseFloat(entry.light) || 0); // ดึงค่าแสง
 
-                renderChart(labels, tempValues, humValues, lightValues);
-            }
+        // *** จุดสำคัญ: ต้องส่งให้ครบ 4 ตัวแปร ***
+        renderChart(labels, tempValues, humValues, lightValues); 
+    }
         });
 
         function renderChart(labels, tempPoints, humPoints) {
             const ctx = document.getElementById('historyChart').getContext('2d');
-            if (myChart) { myChart.destroy(); } // ลบกราฟเก่าก่อนวาดใหม่
+            if (myChart) { myChart.destroy(); }
 
-            myChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'ความชื้น (%)',
-                            data: humPoints,
-                            borderColor: '#3498db',
-                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                            fill: true,
-                            tension: 0.3
-                        },
-                        {
-                            label: 'อุณหภูมิ (°C)',
-                            data: tempPoints,
-                            borderColor: '#e74c3c',
-                            backgroundColor: 'transparent',
-                            fill: false,
-                            tension: 0.3
-                        }
-                        {
-                           label: 'ความเข้มแสง (Lux)',
-                           data: lightPoints,
-                           borderColor: '#f1c40f', // สีเหลืองทอง
-                           borderDash: [5, 5],    // เส้นไข่ปลาจะได้แยกออกง่าย
-                           fill: false,
-                           tension: 0.3
-                         }
-                    ]
+    myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'ความชื้น (%)',
+                    data: h,
+                    borderColor: '#3498db',
+                    fill: false
                 },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: { beginAtZero: true }
-                    }
+                {
+                    label: 'อุณหภูมิ (°C)',
+                    data: t,
+                    borderColor: '#e74c3c',
+                    fill: false
+                },
+                {
+                    label: 'แสง (Lux)',
+                    data: l, // <--- ใช้ตัวแปร l ที่รับมาจากหัวฟังก์ชัน
+                    borderColor: '#f1c40f',
+                    borderDash: [5, 5],
+                    fill: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            }
                 }
             });
         }
