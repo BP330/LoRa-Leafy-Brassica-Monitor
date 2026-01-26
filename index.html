@@ -157,8 +157,9 @@
                 const labels = logEntries.map(entry => entry.time || "--:--");
                 const tempValues = logEntries.map(entry => parseFloat(entry.temp));
                 const humValues = logEntries.map(entry => parseFloat(entry.humidity));
+                const lightValues = logEntries.map(entry => parseFloat(entry.light) || 0);
 
-                renderChart(labels, tempValues, humValues,);
+                renderChart(labels, tempValues, humValues, lightValues);
             }
         });
 
@@ -187,13 +188,18 @@
                             fill: false,
                             tension: 0.3
                         }
+                        {
+                           label: 'ความเข้มแสง (Lux)',
+                           data: lightPoints,
+                           borderColor: '#f1c40f', // สีเหลืองทอง
+                           borderDash: [5, 5],    // เส้นไข่ปลาจะได้แยกออกง่าย
+                           fill: false,
+                           tension: 0.3
+                         }
                     ]
                 },
                 options: {
                     responsive: true,
-                    plugins: {
-                        legend: { position: 'bottom' }
-                    },
                     scales: {
                         y: { beginAtZero: true }
                     }
