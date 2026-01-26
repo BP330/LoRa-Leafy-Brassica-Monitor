@@ -163,43 +163,39 @@
 
         function renderChart(labels, tempPoints, humPoints) {
             const ctx = document.getElementById('historyChart').getContext('2d');
-            if (myChart) { myChart.destroy(); }
+          if (myChart) { myChart.destroy(); } // ลบกราฟเก่าก่อนวาดใหม่
 
-    myChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'ความชื้น (%)',
-                    data: h,
-                    borderColor: '#3498db',
-                    yAxisID: 'y', // ใช้แกนซ้าย
-                    tension: 0.3
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'ความชื้น (%)',
+                            data: humPoints,
+                            borderColor: '#3498db',
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'อุณหภูมิ (°C)',
+                            data: tempPoints,
+                            borderColor: '#e74c3c',
+                            backgroundColor: 'transparent',
+                            fill: false,
+                            tension: 0.3
+                        }
+                    ]
                 },
-                {
-                    label: 'อุณหภูมิ (°C)',
-                    data: t,
-                    borderColor: '#e74c3c',
-                    yAxisID: 'y', // ใช้แกนซ้าย
-                    tension: 0.3
-                },
-                {
-                    label: 'แสง (Lux)',
-                    data: l, // <--- ข้อมูลแสง
-                    borderColor: '#f1c40f',
-                    borderDash: [5, 5],
-                    yAxisID: 'y1', // *** แยกไปใช้แกนขวา ***
-                    tension: 0.3
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: { type: 'linear', position: 'left', title: { display: true, text: 'อุณหภูมิ/ความชื้น' } },
-                y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'แสง (Lux)' } }
-            }
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
                 }
             });
         }
