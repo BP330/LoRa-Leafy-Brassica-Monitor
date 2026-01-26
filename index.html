@@ -174,27 +174,31 @@
                     label: 'ความชื้น (%)',
                     data: h,
                     borderColor: '#3498db',
-                    fill: false
+                    yAxisID: 'y', // ใช้แกนซ้าย
+                    tension: 0.3
                 },
                 {
                     label: 'อุณหภูมิ (°C)',
                     data: t,
                     borderColor: '#e74c3c',
-                    fill: false
+                    yAxisID: 'y', // ใช้แกนซ้าย
+                    tension: 0.3
                 },
                 {
                     label: 'แสง (Lux)',
-                    data: l, // <--- ใช้ตัวแปร l ที่รับมาจากหัวฟังก์ชัน
+                    data: l, // <--- ข้อมูลแสง
                     borderColor: '#f1c40f',
                     borderDash: [5, 5],
-                    fill: false
+                    yAxisID: 'y1', // *** แยกไปใช้แกนขวา ***
+                    tension: 0.3
                 }
             ]
         },
         options: {
             responsive: true,
             scales: {
-                y: { beginAtZero: true }
+                y: { type: 'linear', position: 'left', title: { display: true, text: 'อุณหภูมิ/ความชื้น' } },
+                y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'แสง (Lux)' } }
             }
                 }
             });
