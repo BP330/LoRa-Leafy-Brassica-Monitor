@@ -144,25 +144,24 @@
             }
         });
 
-        // --- แก้ไขจุดดึงข้อมูล Log ---
+        // --- ส่วนการดึงข้อมูล Log มาวาดกราฟ ---
         onValue(historyRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
                 const logEntries = Object.values(data);
                 
+                // ดึงค่า labels, อุณหภูมิ, ความชื้น และแสง
                 const labels = logEntries.map(entry => entry.time || "--:--");
                 const tempValues = logEntries.map(entry => parseFloat(entry.temp) || 0);
                 const humValues = logEntries.map(entry => parseFloat(entry.humidity) || 0);
-                // ดึงค่าแสงเพิ่มเข้ามา
-                const lightValues = logEntries.map(entry => parseFloat(entry.light) || 0);
+                const lightValues = logEntries.map(entry => parseFloat(entry.light) || 0); // ดึงค่าแสง
 
-                // ส่งค่าไปวาดกราฟให้ครบ 4 ตัวแปร
+                // ส่งค่าทั้ง 4 ตัวแปรเข้าไปวาดกราฟ
                 renderChart(labels, tempValues, humValues, lightValues);
             }
         });
 
-        // --- แก้ไขหัวฟังก์ชันให้รับค่า lightPoints ---
-        function renderChart(labels, tempPoints, humPoints, lightPoints) {
+        function renderChart(labels, t, h, l) {
             const ctx = document.getElementById('historyChart').getContext('2d');
             if (myChart) { myChart.destroy(); }
 
@@ -173,45 +172,51 @@
                     datasets: [
                         {
                             label: 'ความชื้น (%)',
-                            data: humPoints,
+                            data: h,
                             borderColor: '#3498db',
                             backgroundColor: 'rgba(52, 152, 219, 0.1)',
                             fill: true,
+                            yAxisID: 'y', // ใช้แกนซ้าย
                             tension: 0.3
                         },
                         {
                             label: 'อุณหภูมิ (°C)',
-                            data: tempPoints,
+                            data: t,
                             borderColor: '#e74c3c',
-                            backgroundColor: 'transparent',
-                            fill: false,
+                            yAxisID: 'y', // ใช้แกนซ้าย
                             tension: 0.3
                         },
-                        // --- เพิ่ม Dataset ของแสง ---
                         {
-                            label: 'ความเข้มแสง (Lux)',
-                            data: lightPoints,
+                            label: 'แสง (Lux)',
+                            data: l,
                             borderColor: '#f1c40f',
-                            borderDash: [5, 5], // เส้นประเพื่อให้ดูง่าย
-                            backgroundColor: 'transparent',
-                            fill: false,
+                            borderDash: [5, 5],
+                            yAxisID: 'y1', // แยกไปใช้แกนขวา เพราะค่า Lux สูง
                             tension: 0.3
                         }
                     ]
                 },
                 options: {
                     responsive: true,
-                    plugins: {
-                        legend: { position: 'bottom' }
-                    },
                     scales: {
-                        y: { beginAtZero: true }
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: 'อุณหภูมิ / ความชื้น' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: { drawOnChartArea: false }, // ไม่ให้เส้นกริดทับกัน
+                            title: { display: true, text: 'ความเข้มแสง (Lux)' }
+                        }
                     }
                 }
             });
         }
-
-        function checkStatus(temp, humidity, realLux) {
+           function checkStatus(temp, humidity, realLux) {
             const tStat = document.getElementById("temp-status");
             if (temp <= -100) { tStat.innerHTML = "❌ เซนเซอร์หลุด"; tStat.style.color = "gray"; }
             else if (temp > 30) { tStat.innerHTML = "🔥 ร้อนเกินไป"; tStat.style.color = "red"; }
