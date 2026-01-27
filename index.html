@@ -2,32 +2,79 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <title>Brassica Smart Monitoring</title>
+    <title>LoRa Leafy Brassica Monitor</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://www.gstatic.com https://cdn.jsdelivr.net 'unsafe-inline';">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: 'Arial', sans-serif; background: #f0f4f7; text-align: center; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .header { background: #27ae60; color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; width: 100%; max-width: 800px; }
-        .grid { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; width: 100%; margin-bottom: 30px; }
-        .card { background: white; padding: 25px; border-radius: 15px; width: 220px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        body { 
+            font-family: 'Arial', sans-serif; 
+            background: #f0f4f7; 
+            text-align: center; 
+            margin: 0; 
+            padding: 20px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
         
-        /* สไตล์กล่องกราฟแยก 3 กล่อง */
-        .chart-container { background: white; padding: 20px; border-radius: 15px; width: 90%; max-width: 800px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 25px; }
-        
+        .header { 
+            background: #27ae60; 
+            color: white; 
+            padding: 20px; 
+            border-radius: 10px; 
+            margin-bottom: 20px; 
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .grid { 
+            display: flex; 
+            justify-content: center; 
+            gap: 20px; 
+            flex-wrap: wrap; 
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .card { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 15px; 
+            width: 220px; /* ปรับขนาดการ์ดให้เหมาะสม */
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+        }
+
+        /* ตกแต่งกล่องกราฟ */
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 25px; /* ระยะห่างระหว่างกราฟ */
+        }
+
         .label { color: #7f8c8d; font-size: 1.1rem; }
         .value { font-size: 2.5rem; font-weight: bold; color: #2c3e50; margin: 10px 0; }
         .unit { font-size: 1rem; color: #95a5a6; }
         .status { margin-top: 10px; font-weight: bold; font-size: 1.1rem; }
         #date-time { margin-bottom: 15px; font-size: 1.2rem; font-weight: bold; color: #2c3e50; }
-        
-        @media (max-width: 600px) { .grid { flex-direction: column; align-items: center; } .card { width: 85%; } }
+
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .grid { flex-direction: column; align-items: center; gap: 15px; }
+            .card { width: 85%; max-width: 300px; }
+            .chart-container { width: 95%; }
+        }
     </style>
 </head>
 <body>
 
     <div class="header">
         <h1>LoRa Leafy Brassica Monitor</h1>
-        <p>ระบบติดตามสภาวะการปลูกผักอัจฉริยะ (แยกกราฟ 3 เซนเซอร์)</p>
+        <p>ระบบติดตามสภาวะการปลูกผักอัจฉริยะ (Telecomm KMITL)</p>
     </div>
 
     <div id="date-time">กำลังเชื่อมต่อข้อมูล...</div>
@@ -72,6 +119,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+        // กำหนดค่า Firebase Config (ใช้ค่าเดิมของคุณ)
         const firebaseConfig = {
             apiKey: "AlzaSyB3tG4hRUH-9Xgqh0n1Hr55-OJ-pryQmQo",
             authDomain: "lora-soil-monitoring-system.firebaseapp.com",
@@ -85,12 +133,22 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        
+        // ชี้ไปยังโหนดข้อมูลใน Firebase
         const sensorRef = ref(db, 'sensor_data');
         const historyRef = ref(db, 'sensor_history');
 
-        let chartT, chartH, chartL;
+        let chartT, chartH, chartL; // ตัวแปรสำหรับเก็บ Instance ของกราฟแต่ละตัว
 
-        // ดึงค่าปัจจุบัน
+        // ฟังก์ชันสำหรับอัปเดตเวลาปัจจุบัน
+        function updateClock() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            document.getElementById('date-time').innerText = "ข้อมูลล่าสุดเมื่อ: " + now.toLocaleDateString('th-TH', options);
+        }
+        setInterval(updateClock, 1000); // อัปเดตทุก 1 วินาที
+
+        // --- Logic สำหรับ Real-time (การ์ด 3 ใบด้านบน) ---
         onValue(sensorRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
@@ -98,65 +156,112 @@
                 document.getElementById("hum").innerText = data.humidity || "--";
                 document.getElementById("light").innerText = data.light || "--";
                 checkStatus(parseFloat(data.temp), parseFloat(data.humidity), parseFloat(data.light));
+                // อัปเดตเวลาล่าสุดทันทีที่มีข้อมูลใหม่เข้ามา
                 const now = new Date();
                 document.getElementById('date-time').innerText = "อัปเดตล่าสุด: " + now.toLocaleTimeString('th-TH');
             }
         });
 
-        // ดึงข้อมูลประวัติมาวาดกราฟทั้ง 3 อัน
+        // --- Logic สำหรับดึงข้อมูล Log มาวาดกราฟ 3 อัน ---
         onValue(historyRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                const logs = Object.values(data).slice(-15); // ดึง 15 จุดล่าสุด
-                const labels = logs.map(l => l.time || "--:--");
+                const logs = Object.values(data).slice(-15); // ดึง 15 จุดข้อมูลล่าสุด (ปรับได้ตามต้องการ)
+                const labels = logs.map(l => l.time || "--:--"); // เวลาสำหรับแกน X
+                
+                // แยกค่าสำหรับแต่ละกราฟ พร้อมป้องกันค่าว่าง (null/undefined)
                 const tVals = logs.map(l => parseFloat(l.temp) || 0);
                 const hVals = logs.map(l => parseFloat(l.humidity) || 0);
                 const lVals = logs.map(l => parseFloat(l.light) || 0);
 
-                renderAllCharts(labels, tVals, hVals, lVals);
+                // เรียกฟังก์ชันวาดกราฟทั้ง 3 อัน
+                renderTempChart(labels, tVals);
+                renderHumChart(labels, hVals);
+                renderLightChart(labels, lVals);
             }
         });
 
-        function renderAllCharts(labels, t, h, l) {
-            // 1. วาดกราฟอุณหภูมิ
-            const ctxT = document.getElementById('tempChart').getContext('2d');
-            if (chartT) chartT.destroy();
-            chartT = new Chart(ctxT, {
+        // 1. ฟังก์ชันวาดกราฟอุณหภูมิ (เส้นเดียว)
+        function renderTempChart(labels, tempPoints) {
+            const ctx = document.getElementById('tempChart').getContext('2d');
+            if (chartT) chartT.destroy(); // ลบกราฟเก่าก่อนวาดใหม่
+            chartT = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
-                    datasets: [{ label: 'อุณหภูมิ (°C)', data: t, borderColor: '#e74c3c', backgroundColor: 'rgba(231, 76, 60, 0.1)', fill: true, tension: 0.3 }]
-                }
-            });
-
-            // 2. วาดกราฟความชื้นดิน
-            const ctxH = document.getElementById('humChart').getContext('2d');
-            if (chartH) chartH.destroy();
-            chartH = new Chart(ctxH, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{ label: 'ความชื้นดิน (%)', data: h, borderColor: '#3498db', backgroundColor: 'rgba(52, 152, 219, 0.1)', fill: true, tension: 0.3 }]
+                    datasets: [{ 
+                        label: 'อุณหภูมิ (°C)', 
+                        data: tempPoints, 
+                        borderColor: '#e74c3c', // สีแดง
+                        backgroundColor: 'rgba(231, 76, 60, 0.1)', // พื้นหลังกราฟ
+                        fill: true, // เติมสีใต้เส้นกราฟ
+                        tension: 0.3 // ความโค้งของเส้น
+                    }]
                 },
-                options: { scales: { y: { min: 0, max: 100 } } }
-            });
-
-            // 3. วาดกราฟแสง
-            const ctxL = document.getElementById('lightChart').getContext('2d');
-            if (chartL) chartL.destroy();
-            chartL = new Chart(ctxL, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{ label: 'แสง (Lux)', data: l, borderColor: '#f1c40f', backgroundColor: 'rgba(241, 196, 15, 0.1)', fill: true, tension: 0.3 }]
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } }, // ซ่อน Label ด้านล่าง
+                    scales: { y: { beginAtZero: true, title: { display: true, text: 'อุณหภูมิ (°C)' } } }
                 }
             });
         }
 
-           function checkStatus(temp, humidity, realLux) {
+        // 2. ฟังก์ชันวาดกราฟความชื้นดิน (เส้นเดียว)
+        function renderHumChart(labels, humPoints) {
+            const ctx = document.getElementById('humChart').getContext('2d');
+            if (chartH) chartH.destroy();
+            chartH = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{ 
+                        label: 'ความชื้นดิน (%)', 
+                        data: humPoints, 
+                        borderColor: '#3498db', // สีน้ำเงิน
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)', 
+                        fill: true, 
+                        tension: 0.3 
+                    }]
+                },
+                options: { 
+                    responsive: true,
+                    plugins: { legend: { display: false } }, // ซ่อน Label
+                    scales: { y: { min: 0, max: 100, title: { display: true, text: 'ความชื้นดิน (%)' } } } // ล็อกสเกล 0-100
+                }
+            });
+        }
+
+        // 3. ฟังก์ชันวาดกราฟความเข้มแสง (เส้นเดียว)
+        function renderLightChart(labels, lightPoints) {
+            const ctx = document.getElementById('lightChart').getContext('2d');
+            if (chartL) chartL.destroy();
+            chartL = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{ 
+                        label: 'ความเข้มแสง (Lux)', 
+                        data: lightPoints, 
+                        borderColor: '#f1c40f', // สีเหลืองทอง
+                        backgroundColor: 'rgba(241, 196, 15, 0.1)', 
+                        fill: true, 
+                        tension: 0.3 
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } }, // ซ่อน Label
+                    scales: { y: { beginAtZero: true, title: { display: true, text: 'ความเข้มแสง (Lux)' } } }
+                }
+            });
+        }
+
+        // ฟังก์ชันเช็คสถานะ (ใช้ Logic เดิมของคุณ)
+        function checkStatus(temp, humidity, realLux) {
             const tStat = document.getElementById("temp-status");
             if (temp <= -100) { tStat.innerHTML = "❌ เซนเซอร์หลุด"; tStat.style.color = "gray"; }
             else if (temp > 30) { tStat.innerHTML = "🔥 ร้อนเกินไป"; tStat.style.color = "red"; }
+            else if (temp > 25 ) { tStat.innerHTML = "⚠️ เฝ้าระวัง"; tStat.style.color = "#ff5722"; }
             else if (temp >= 15) { tStat.innerHTML = "✅ ปกติ"; tStat.style.color = "green"; }
             else { tStat.innerHTML = "❄️ เย็นเกินไป"; tStat.style.color = "blue"; }
 
@@ -167,8 +272,10 @@
 
             const lStat = document.getElementById("light-status");
             if (realLux < 3000) { lStat.innerHTML = "🌑 แสงน้อยมาก"; lStat.style.color = "gray"; }
+            else if (realLux < 10000) { lStat.innerHTML = "⛅ แสงค่อนข้างน้อย"; lStat.style.color = "orange"; }
             else if (realLux <= 50000) { lStat.innerHTML = "✅ แสงพอเหมาะ"; lStat.style.color = "green"; }
             else { lStat.innerHTML = "☀️ แสงจ้าเกินไป"; lStat.style.color = "red"; }
         }
-    </script></body>
+    </script>
+</body>
 </html>
