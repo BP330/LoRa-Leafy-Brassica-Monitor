@@ -104,7 +104,7 @@
         <canvas id="historyChart"></canvas>
     </div>
 
-    <script type="module">
+   <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
@@ -122,11 +122,10 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         
-        // ชี้ไปยังโหนดข้อมูล
         const sensorRef = ref(db, 'sensor_data');
         const historyRef = ref(db, 'sensor_history');
 
-        let myChart; // ตัวแปรเก็บ Instance ของกราฟ
+        let myChart;
 
         function updateClock() {
             const now = new Date();
@@ -135,7 +134,6 @@
         }
         setInterval(updateClock, 1000);
 
-        // --- Logic สำหรับ Real-time (การ์ด 3 ใบ) ---
         onValue(sensorRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
@@ -146,25 +144,27 @@
             }
         });
 
-        // --- 3. Logic สำหรับดึงข้อมูล Log มาวาดกราฟ ---
+        // --- แก้ไขจุดดึงข้อมูล Log ---
         onValue(historyRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                // ดึงข้อมูลออกมาเป็น Array (ดึงจากรหัสสุ่ม Push ID)
                 const logEntries = Object.values(data);
                 
-                // แยกค่าเวลา, อุณหภูมิ, ความชื้น
                 const labels = logEntries.map(entry => entry.time || "--:--");
-                const tempValues = logEntries.map(entry => parseFloat(entry.temp));
-                const humValues = logEntries.map(entry => parseFloat(entry.humidity));
+                const tempValues = logEntries.map(entry => parseFloat(entry.temp) || 0);
+                const humValues = logEntries.map(entry => parseFloat(entry.humidity) || 0);
+                // ดึงค่าแสงเพิ่มเข้ามา
+                const lightValues = logEntries.map(entry => parseFloat(entry.light) || 0);
 
-                renderChart(labels, tempValues, humValues,);
+                // ส่งค่าไปวาดกราฟให้ครบ 4 ตัวแปร
+                renderChart(labels, tempValues, humValues, lightValues);
             }
         });
 
-        function renderChart(labels, tempPoints, humPoints) {
+        // --- แก้ไขหัวฟังก์ชันให้รับค่า lightPoints ---
+        function renderChart(labels, tempPoints, humPoints, lightPoints) {
             const ctx = document.getElementById('historyChart').getContext('2d');
-            if (myChart) { myChart.destroy(); } // ลบกราฟเก่าก่อนวาดใหม่
+            if (myChart) { myChart.destroy(); }
 
             myChart = new Chart(ctx, {
                 type: 'line',
@@ -186,6 +186,16 @@
                             backgroundColor: 'transparent',
                             fill: false,
                             tension: 0.3
+                        },
+                        // --- เพิ่ม Dataset ของแสง ---
+                        {
+                            label: 'ความเข้มแสง (Lux)',
+                            data: lightPoints,
+                            borderColor: '#f1c40f',
+                            borderDash: [5, 5], // เส้นประเพื่อให้ดูง่าย
+                            backgroundColor: 'transparent',
+                            fill: false,
+                            tension: 0.3
                         }
                     ]
                 },
@@ -201,12 +211,10 @@
             });
         }
 
-        // ฟังก์ชันเช็คสถานะเดิม
         function checkStatus(temp, humidity, realLux) {
             const tStat = document.getElementById("temp-status");
             if (temp <= -100) { tStat.innerHTML = "❌ เซนเซอร์หลุด"; tStat.style.color = "gray"; }
             else if (temp > 30) { tStat.innerHTML = "🔥 ร้อนเกินไป"; tStat.style.color = "red"; }
-            else if (temp > 25 ) { tStat.innerHTML = "⚠️ เฝ้าระวัง"; tStat.style.color = "#ff5722"; }
             else if (temp >= 15) { tStat.innerHTML = "✅ ปกติ"; tStat.style.color = "green"; }
             else { tStat.innerHTML = "❄️ เย็นเกินไป"; tStat.style.color = "blue"; }
 
@@ -217,10 +225,8 @@
 
             const lStat = document.getElementById("light-status");
             if (realLux < 3000) { lStat.innerHTML = "🌑 แสงน้อยมาก"; lStat.style.color = "gray"; }
-            else if (realLux < 10000) { lStat.innerHTML = "⛅ แสงค่อนข้างน้อย"; lStat.style.color = "orange"; }
             else if (realLux <= 50000) { lStat.innerHTML = "✅ แสงพอเหมาะ"; lStat.style.color = "green"; }
             else { lStat.innerHTML = "☀️ แสงจ้าเกินไป"; lStat.style.color = "red"; }
         }
-    </script>
-</body>
+    </script></body>
 </html>
