@@ -74,7 +74,7 @@
 
     <div class="header">
         <h1>LoRa Leafy Brassica Monitor</h1>
-        <p>ระบบติดตามสภาวะการปลูกผักอัจฉริยะ (Telecomm KMITL)</p>
+        <p>ระบบติดตามสภาวะการปลูกผักอัจฉริยะ </p>
     </div>
 
     <div id="date-time">กำลังเชื่อมต่อข้อมูล...</div>
@@ -140,27 +140,28 @@
 
         let chartT, chartH, chartL; // ตัวแปรสำหรับเก็บ Instance ของกราฟแต่ละตัว
 
-        // ฟังก์ชันสำหรับอัปเดตเวลาปัจจุบัน
-        function updateClock() {
-            const now = new Date();
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
-            document.getElementById('date-time').innerText = "ข้อมูลล่าสุดเมื่อ: " + now.toLocaleDateString('th-TH', options);
-        }
-        setInterval(updateClock, 1000); // อัปเดตทุก 1 วินาที
-
-        // --- Logic สำหรับ Real-time (การ์ด 3 ใบด้านบน) ---
-        onValue(sensorRef, (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                document.getElementById("temp").innerText = data.temp || "--";
-                document.getElementById("hum").innerText = data.humidity || "--";
-                document.getElementById("light").innerText = data.light || "--";
-                checkStatus(parseFloat(data.temp), parseFloat(data.humidity), parseFloat(data.light));
-                // อัปเดตเวลาล่าสุดทันทีที่มีข้อมูลใหม่เข้ามา
-                const now = new Date();
-                document.getElementById('date-time').innerText = "อัปเดตล่าสุด: " + now.toLocaleTimeString('th-TH');
-            }
+        // --- Logic สำหรับ Real-time ---
+onValue(sensorRef, (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+        // อัปเดตตัวเลข
+        document.getElementById("temp").innerText = data.temp || "--";
+        document.getElementById("hum").innerText = data.humidity || "--";
+        document.getElementById("light").innerText = data.light || "--";
+        
+        // อัปเดตเวลา (จะเปลี่ยนเฉพาะเมื่อมีข้อมูลใหม่เข้าเท่านั้น)
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('th-TH', { 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            second: '2-digit' 
         });
+        document.getElementById('date-time').innerText = "อัปเดตล่าสุด: " + timeString + " น.";
+        
+        // ตรวจสอบสถานะ
+        checkStatus(parseFloat(data.temp), parseFloat(data.humidity), parseFloat(data.light));
+    }
+});
 
         // --- Logic สำหรับดึงข้อมูล Log มาวาดกราฟ 3 อัน ---
         onValue(historyRef, (snapshot) => {
