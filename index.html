@@ -101,6 +101,12 @@
     </div>
 
     <div class="chart-container">
+    	<div class="label">📅 เลือกดูข้อมูลย้อนหลัง</div>
+    	<input type="date" id="history-date" style="padding: 10px; border-radius: 5px; border: 1px solid #ccc; margin: 10px 0;">
+    	<button id="load-history" style="padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer;">ดึงข้อมูล</button>
+     </div>
+
+    <div class="chart-container">
         <div class="label" style="margin-bottom: 10px;">🌡️ แนวโน้มอุณหภูมิ (°C)</div>
         <canvas id="tempChart"></canvas>
     </div>
@@ -147,6 +153,35 @@
             document.getElementById('date-time').innerText = "ข้อมูลล่าสุดเมื่อ: " + now.toLocaleDateString('th-TH', options);
         }
         setInterval(updateClock, 1000); // อัปเดตทุก 1 วินาที
+
+	//เลือกวันที่
+	const historyDateInput = document.getElementById('history-date');
+const loadHistoryBtn = document.getElementById('load-history');
+
+// ฟังก์ชันดึงข้อมูลตามวันที่เลือก
+loadHistoryBtn.addEventListener('click', () => {
+    const selectedDate = historyDateInput.value; // จะได้ฟอร์แมต YYYY-MM-DD
+    if (!selectedDate) return alert("กรุณาเลือกวันที่");
+
+    // ชี้ไปที่ Path ของวันที่เลือก เช่น sensor_history/2026-01-27
+    const historyRefByDate = ref(db, `sensor_history/${selectedDate}`);
+    
+    onValue(historyRefByDate, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            const logs = Object.values(data);
+            const labels = logs.map(l => l.time || "--:--");
+            const tVals = logs.map(l => parseFloat(l.temp) || 0);
+            const hVals = logs.map(l => parseFloat(l.humidity) || 0);
+            const lVals = logs.map(l => parseFloat(l.light) || 0);
+
+            // อัปเดตกราฟที่มีอยู่ด้วยข้อมูลใหม่
+            renderAllCharts(labels, tVals, hVals, lVals);
+        } else {
+            alert("ไม่พบข้อมูลของวันที่เลือก");
+        }
+    }, { onlyOnce: true }); // ดึงครั้งเดียวพอ ไม่ต้อง Real-time สำหรับประวัติ
+});
 
         // --- Logic สำหรับ Real-time (การ์ด 3 ใบด้านบน) ---
         onValue(sensorRef, (snapshot) => {
