@@ -156,9 +156,6 @@
                 document.getElementById("hum").innerText = data.humidity || "--";
                 document.getElementById("light").innerText = data.light || "--";
                 checkStatus(parseFloat(data.temp), parseFloat(data.humidity), parseFloat(data.light));
-                // อัปเดตเวลาล่าสุดทันทีที่มีข้อมูลใหม่เข้ามา
-                const now = new Date();
-                document.getElementById('date-time').innerText = "อัปเดตล่าสุด: " + now.toLocaleTimeString('th-TH');
             }
         });
 
