@@ -140,25 +140,29 @@
 
         let chartT, chartH, chartL; // ตัวแปรสำหรับเก็บ Instance ของกราฟแต่ละตัว
 
-        // --- Logic สำหรับ Real-time ---
+       // --- Logic สำหรับ Real-time ---
 onValue(sensorRef, (snapshot) => {
     const data = snapshot.val();
     if (data) {
-        // อัปเดตตัวเลข
         document.getElementById("temp").innerText = data.temp || "--";
         document.getElementById("hum").innerText = data.humidity || "--";
         document.getElementById("light").innerText = data.light || "--";
         
-        // อัปเดตเวลา (จะเปลี่ยนเฉพาะเมื่อมีข้อมูลใหม่เข้าเท่านั้น)
+        // --- ส่วนจัดการรูปแบบวันที่และเวลาแบบย่อ ---
         const now = new Date();
-        const timeString = now.toLocaleTimeString('th-TH', { 
+        const options = { 
+            day: '2-digit', 
+            month: 'short', 
+            year: '2-digit', 
             hour: '2-digit', 
             minute: '2-digit', 
             second: '2-digit' 
-        });
-        document.getElementById('date-time').innerText = "อัปเดตล่าสุด: " + timeString + " น.";
+        };
         
-        // ตรวจสอบสถานะ
+        // ผลลัพธ์จะได้ประมาณ: "27 ม.ค. 69, 16:15:30"
+        const formattedDate = now.toLocaleString('th-TH', options);
+        document.getElementById('date-time').innerText = "อัปเดตล่าสุด: " + formattedDate;
+        
         checkStatus(parseFloat(data.temp), parseFloat(data.humidity), parseFloat(data.light));
     }
 });
