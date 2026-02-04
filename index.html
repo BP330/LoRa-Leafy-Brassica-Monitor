@@ -145,6 +145,9 @@
 
         let chartT, chartH, chartL; // ตัวแปรสำหรับเก็บ Instance ของกราฟแต่ละตัว
         let selectedDate = null;
+        const today = new Date().toISOString().split("T")[0];
+        document.getElementById("datePicker").value = today;
+        selectedDate = today;
         let allLogs = [];
         document.getElementById("datePicker").addEventListener("change", (e) => {
             selectedDate = e.target.value;
@@ -180,9 +183,10 @@
             drawHistory();
 
             // 👉 ถ้าเลือกวันแล้ว ให้กรอง
-            if (selectedDate) return {
-                logs = logs.filter(l => l.date === selectedDate);
-            }
+        function drawHistory() {
+            if (selectedDate) return;
+            let logs = allLogs.filter(l => l.date === selectedDate);
+            
 
             // เรียงตามเวลา (เผื่อ Firebase ไม่เรียง)
             logs.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
@@ -200,7 +204,6 @@
                 renderHumChart(labels, hVals);
                 renderLightChart(labels, lVals);
             }
-        );
 
         // 1. ฟังก์ชันวาดกราฟอุณหภูมิ (เส้นเดียว)
         function renderTempChart(labels, tempPoints) {
