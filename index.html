@@ -145,9 +145,12 @@
 
         let chartT, chartH, chartL; // ตัวแปรสำหรับเก็บ Instance ของกราฟแต่ละตัว
         let selectedDate = null;
+        let allLogs = [];
         document.getElementById("datePicker").addEventListener("change", (e) => {
-            selectedDate = e.target.value; // format: YYYY-MM-DD
+            selectedDate = e.target.value;
+            drawHistory(); // 👈 สั่งวาดกราฟใหม่ทันที
         });
+
         
         // ฟังก์ชันสำหรับอัปเดตเวลาปัจจุบัน
         function updateClock() {
@@ -173,16 +176,16 @@
             const raw = snapshot.val();
             if (!raw) return;
 
-            let logs = Object.values(raw);
+            allLogs = Object.values(raw);
+            drawHistory();
 
             // 👉 ถ้าเลือกวันแล้ว ให้กรอง
-            if (selectedDate) {
+            if (selectedDate) return {
                 logs = logs.filter(l => l.date === selectedDate);
             }
 
             // เรียงตามเวลา (เผื่อ Firebase ไม่เรียง)
             logs.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-
             // จำกัดจำนวนจุด (กันกราฟแตก)
             logs = logs.slice(-30);
                 const labels = logs.map(l => l.time || "--:--"); // เวลาสำหรับแกน X
