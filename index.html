@@ -74,10 +74,15 @@
 
     <div class="header">
         <h1>LoRa Leafy Brassica Monitor</h1>
-        <p>ระบบติดตามสภาวะการปลูกผักอัจฉริยะ (Telecomm KMITL)</p>
+        <p>ระบบติดตามสภาวะการปลูกผักอัจฉริยะ </p>
     </div>
 
     <div id="date-time">กำลังเชื่อมต่อข้อมูล...</div>
+    
+    <div style="margin:20px 0;">
+        📅 เลือกวันที่:
+        <input type="date" id="datePicker">
+    </div>
 
     <div class="grid">
         <div class="card">
@@ -139,7 +144,11 @@
         const historyRef = ref(db, 'sensor_history');
 
         let chartT, chartH, chartL; // ตัวแปรสำหรับเก็บ Instance ของกราฟแต่ละตัว
-
+        let selectedDate = null;
+        document.getElementById("datePicker").addEventListener("change", (e) => {
+            selectedDate = e.target.value; // format: YYYY-MM-DD
+        });
+        
         // ฟังก์ชันสำหรับอัปเดตเวลาปัจจุบัน
         function updateClock() {
             const now = new Date();
@@ -161,9 +170,21 @@
 
         // --- Logic สำหรับดึงข้อมูล Log มาวาดกราฟ 3 อัน ---
         onValue(historyRef, (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                const logs = Object.values(data).slice(-15); // ดึง 15 จุดข้อมูลล่าสุด (ปรับได้ตามต้องการ)
+            const raw = snapshot.val();
+            if (!raw) return;
+
+            let logs = Object.values(raw);
+
+            // 👉 ถ้าเลือกวันแล้ว ให้กรอง
+            if (selectedDate) {
+                logs = logs.filter(l => l.date === selectedDate);
+            }
+
+            // เรียงตามเวลา (เผื่อ Firebase ไม่เรียง)
+            logs.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+            // จำกัดจำนวนจุด (กันกราฟแตก)
+            logs = logs.slice(-30);
                 const labels = logs.map(l => l.time || "--:--"); // เวลาสำหรับแกน X
                 
                 // แยกค่าสำหรับแต่ละกราฟ พร้อมป้องกันค่าว่าง (null/undefined)
@@ -176,7 +197,7 @@
                 renderHumChart(labels, hVals);
                 renderLightChart(labels, lVals);
             }
-        });
+        );
 
         // 1. ฟังก์ชันวาดกราฟอุณหภูมิ (เส้นเดียว)
         function renderTempChart(labels, tempPoints) {
