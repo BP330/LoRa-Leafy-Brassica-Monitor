@@ -174,10 +174,15 @@
             if (!raw) return;
 
             let logs = Object.values(raw);
+            console.log("Selected date:", selectedDate);
+            console.log("Logs before filter:", logs.length);
+            console.log("Sample log:", logs[0]);
 
             // 👉 ถ้าเลือกวันแล้ว ให้กรอง
             if (selectedDate) {
-                logs = logs.filter(l => l.date === selectedDate);
+                const start = new Date(selectedDate + "T00:00:00").getTime();
+                const end   = new Date(selectedDate + "T23:59:59").getTime();
+                logs = logs.filter(l => l.timestamp >= start && l.timestamp <= end);
             }
 
             // เรียงตามเวลา (เผื่อ Firebase ไม่เรียง)
