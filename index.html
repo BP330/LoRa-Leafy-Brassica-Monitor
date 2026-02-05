@@ -102,6 +102,9 @@
 
     <div style="margin:20px 0;"> 
         📅 เลือกวันที่: <input type="date" id="datePicker"> 
+         <button id="downloadCSV" style="margin-left:10px;">
+        ⬇️ ดาวน์โหลด CSV
+        </button>
     </div>
 
     <div class="chart-container">
@@ -120,10 +123,6 @@
     </div>
 
     <script type="module">
-        document.getElementById("datePicker").addEventListener("change", (e) => {
-            selectedDate = e.target.value; // YYYY-MM-DD
-        updateCharts();
-        });
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
@@ -149,6 +148,13 @@
         let chartT, chartH, chartL; // ตัวแปรสำหรับเก็บ Instance ของกราฟแต่ละตัว
         let allLogs = [];        // เก็บ history ทั้งหมด
         let selectedDate = "";  // วันที่ที่เลือก
+        document.getElementById("datePicker").addEventListener("change", (e) => {
+            selectedDate = e.target.value; // YYYY-MM-DD
+        updateCharts();
+        });
+        document.getElementById("downloadCSV").addEventListener("click", () => {
+            exportCSV();
+        });
 
         // ฟังก์ชันสำหรับอัปเดตเวลาปัจจุบัน
         function updateClock() {
@@ -205,6 +211,72 @@
             renderHumChart(labels, hVals);
             renderLightChart(labels, lVals);
         }
+
+        function exportCSV() {
+            if (!allLogs.length) {
+                alert("ไม่มีข้อมูลให้ดาวน์โหลด");
+                return;
+            }
+
+            // ใช้ข้อมูลเดียวกับกราฟ (เคารพวันที่ที่เลือก)
+            let logs = [...allLogs];
+
+            if (selectedDate) {
+                logs = logs.filter(l => l.date === selectedDate);
+            }
+
+            if (!logs.length) {
+                alert("ไม่มีข้อมูลในวันที่เลือก");
+                return;
+            }
+
+            // 🔹 header ของ CSV
+            const headers = [
+                "date",
+                "time",
+                "temp",
+                "humidity",
+                "light",
+                "rssi",
+                "timestamp"
+            ];
+
+            // 🔹 แปลงเป็น CSV row
+            const rows = logs.map(l => [
+                l.date || "",
+                l.time || "",
+                l.temp || "",
+                l.humidity || "",
+                l.light || "",
+                l.rssi || "",
+                l.timestamp || ""
+            ]);
+
+            // รวม header + data
+            let csvContent =
+                headers.join(",") + "\n" +
+                rows.map(r => r.join(",")).join("\n");
+
+            // สร้างไฟล์
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+
+            // ตั้งชื่อไฟล์
+            const filename = selectedDate
+                ? `sensor_log_${selectedDate}.csv`
+                : `sensor_log_all.csv`;
+
+            // trigger download
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
 
         // 1. ฟังก์ชันวาดกราฟอุณหภูมิ (เส้นเดียว)
         function renderTempChart(labels, tempPoints) {
