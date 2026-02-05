@@ -147,6 +147,7 @@
         let selectedDate = null;
         document.getElementById("datePicker").addEventListener("change", (e) => {
             selectedDate = e.target.value; // format: YYYY-MM-DD
+            updateCharts();
         });
         
         // ฟังก์ชันสำหรับอัปเดตเวลาปัจจุบัน
@@ -173,36 +174,34 @@
             const raw = snapshot.val();
             if (!raw) return;
 
-            let logs = Object.values(raw);
-            console.log("Selected date:", selectedDate);
-            console.log("Logs before filter:", logs.length);
-            console.log("Sample log:", logs[0]);
+            allLogs = Object.values(raw);
+            updateCharts();
+        });
 
-            // 👉 ถ้าเลือกวันแล้ว ให้กรอง
+        function updateCharts() {
+            let logs = [...allLogs];
+
             if (selectedDate) {
                 const start = new Date(selectedDate + "T00:00:00").getTime();
                 const end   = new Date(selectedDate + "T23:59:59").getTime();
-                logs = logs.filter(l => l.timestamp >= start && l.timestamp <= end);
+
+                logs = logs.filter(l =>
+                    l.timestamp >= start && l.timestamp <= end
+                );
             }
 
-            // เรียงตามเวลา (เผื่อ Firebase ไม่เรียง)
             logs.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-
-            // จำกัดจำนวนจุด (กันกราฟแตก)
             logs = logs.slice(-30);
-                const labels = logs.map(l => l.time || "--:--"); // เวลาสำหรับแกน X
-                
-                // แยกค่าสำหรับแต่ละกราฟ พร้อมป้องกันค่าว่าง (null/undefined)
-                const tVals = logs.map(l => parseFloat(l.temp) || 0);
-                const hVals = logs.map(l => parseFloat(l.humidity) || 0);
-                const lVals = logs.map(l => parseFloat(l.light) || 0);
 
-                // เรียกฟังก์ชันวาดกราฟทั้ง 3 อัน
-                renderTempChart(labels, tVals);
-                renderHumChart(labels, hVals);
-                renderLightChart(labels, lVals);
-            }
-        );
+            const labels = logs.map(l => l.time || "--:--");
+            const tVals  = logs.map(l => parseFloat(l.temp));
+            const hVals  = logs.map(l => parseFloat(l.humidity));
+            const lVals  = logs.map(l => parseFloat(l.light));
+
+            renderTempChart(labels, tVals);
+            renderHumChart(labels, hVals);
+            renderLightChart(labels, lVals);
+        }
 
         // 1. ฟังก์ชันวาดกราฟอุณหภูมิ (เส้นเดียว)
         function renderTempChart(labels, tempPoints) {
