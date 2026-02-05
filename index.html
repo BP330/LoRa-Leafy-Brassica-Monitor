@@ -74,7 +74,7 @@
 
     <div class="header">
         <h1>LoRa Leafy Brassica Monitor</h1>
-        <p>ระบบติดตามสภาวะการปลูกผักอัจฉริยะ </p>
+        <p>ระบบติดตามสภาวะการปลูกผักอัจฉริยะ (Telecomm KMITL)</p>
     </div>
 
     <div id="date-time">กำลังเชื่อมต่อข้อมูล...</div>
@@ -98,11 +98,6 @@
             <div class="unit">Lux</div>
             <div id="light-status" class="status"></div>
         </div>
-    </div>
-
-    <div style="margin:20px 0;">
-        📅 เลือกวันที่:
-        <input type="date" id="datePicker">
     </div>
 
     <div class="chart-container">
@@ -144,13 +139,7 @@
         const historyRef = ref(db, 'sensor_history');
 
         let chartT, chartH, chartL; // ตัวแปรสำหรับเก็บ Instance ของกราฟแต่ละตัว
-        let allLogs = [];
-        let selectedDate = null;
-        document.getElementById("datePicker").addEventListener("change", (e) => {
-            selectedDate = e.target.value; // format: YYYY-MM-DD
-            updateCharts();
-        });
-        
+
         // ฟังก์ชันสำหรับอัปเดตเวลาปัจจุบัน
         function updateClock() {
             const now = new Date();
@@ -172,38 +161,22 @@
 
         // --- Logic สำหรับดึงข้อมูล Log มาวาดกราฟ 3 อัน ---
         onValue(historyRef, (snapshot) => {
-            const raw = snapshot.val();
-            if (!raw) return;
+            const data = snapshot.val();
+            if (data) {
+                const logs = Object.values(data).slice(-15); // ดึง 15 จุดข้อมูลล่าสุด (ปรับได้ตามต้องการ)
+                const labels = logs.map(l => l.time || "--:--"); // เวลาสำหรับแกน X
+                
+                // แยกค่าสำหรับแต่ละกราฟ พร้อมป้องกันค่าว่าง (null/undefined)
+                const tVals = logs.map(l => parseFloat(l.temp) || 0);
+                const hVals = logs.map(l => parseFloat(l.humidity) || 0);
+                const lVals = logs.map(l => parseFloat(l.light) || 0);
 
-            allLogs = Object.values(raw);
-            updateCharts();
-        });
-
-        function updateCharts() {
-            let logs = [...allLogs];
-
-            if (selectedDate) {
-                const start = new Date(selectedDate + "T00:00:00").getTime();
-                const end   = new Date(selectedDate + "T23:59:59").getTime();
-
-                logs = logs.filter(l => {
-                    const ts = l.timestamp < 1e12 ? l.timestamp * 1000 : l.timestamp;
-                    return ts >= start && ts <= end;
-                });
+                // เรียกฟังก์ชันวาดกราฟทั้ง 3 อัน
+                renderTempChart(labels, tVals);
+                renderHumChart(labels, hVals);
+                renderLightChart(labels, lVals);
             }
-
-            logs.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-            logs = logs.slice(-30);
-
-            const labels = logs.map(l => l.time || "--:--");
-            const tVals  = logs.map(l => parseFloat(l.temp));
-            const hVals  = logs.map(l => parseFloat(l.humidity));
-            const lVals  = logs.map(l => parseFloat(l.light));
-
-            renderTempChart(labels, tVals);
-            renderHumChart(labels, hVals);
-            renderLightChart(labels, lVals);
-        }
+        });
 
         // 1. ฟังก์ชันวาดกราฟอุณหภูมิ (เส้นเดียว)
         function renderTempChart(labels, tempPoints) {
