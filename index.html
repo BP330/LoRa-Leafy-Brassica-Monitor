@@ -100,6 +100,10 @@
         </div>
     </div>
 
+    <div style="margin:20px 0;"> 
+        📅 เลือกวันที่: <input type="date" id="datePicker"> 
+    </div>
+
     <div class="chart-container">
         <div class="label" style="margin-bottom: 10px;">🌡️ แนวโน้มอุณหภูมิ (°C)</div>
         <canvas id="tempChart"></canvas>
@@ -116,6 +120,10 @@
     </div>
 
     <script type="module">
+        document.getElementById("datePicker").addEventListener("change", (e) => {
+            selectedDate = e.target.value; // YYYY-MM-DD
+        updateCharts();
+        });
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
@@ -139,6 +147,8 @@
         const historyRef = ref(db, 'sensor_history');
 
         let chartT, chartH, chartL; // ตัวแปรสำหรับเก็บ Instance ของกราฟแต่ละตัว
+        let allLogs = [];        // เก็บ history ทั้งหมด
+        let selectedDate = "";  // วันที่ที่เลือก
 
         // ฟังก์ชันสำหรับอัปเดตเวลาปัจจุบัน
         function updateClock() {
@@ -162,21 +172,39 @@
         // --- Logic สำหรับดึงข้อมูล Log มาวาดกราฟ 3 อัน ---
         onValue(historyRef, (snapshot) => {
             const data = snapshot.val();
-            if (data) {
-                const logs = Object.values(data).slice(-15); // ดึง 15 จุดข้อมูลล่าสุด (ปรับได้ตามต้องการ)
-                const labels = logs.map(l => l.time || "--:--"); // เวลาสำหรับแกน X
-                
-                // แยกค่าสำหรับแต่ละกราฟ พร้อมป้องกันค่าว่าง (null/undefined)
-                const tVals = logs.map(l => parseFloat(l.temp) || 0);
-                const hVals = logs.map(l => parseFloat(l.humidity) || 0);
-                const lVals = logs.map(l => parseFloat(l.light) || 0);
+            if (!data) return;
 
-                // เรียกฟังก์ชันวาดกราฟทั้ง 3 อัน
-                renderTempChart(labels, tVals);
-                renderHumChart(labels, hVals);
-                renderLightChart(labels, lVals);
-            }
+            allLogs = Object.values(data);
+            updateCharts(); // วาดกราฟครั้งแรก
         });
+
+        function updateCharts() {
+            let logs = [...allLogs];
+
+            // 👉 กรองตามวันที่ (ใช้ date ตรง ๆ เพราะ Firebase ของคุณเป็น YYYY-MM-DD)
+            if (selectedDate) {
+                logs = logs.filter(l => l.date === selectedDate);
+            }
+            // เรียงตามเวลา (กัน Firebase เรียงมั่ว)
+            logs.sort((a, b) => {
+                const ta = a.timestamp || 0;
+                const tb = b.timestamp || 0;
+                return ta - tb;
+            });
+
+            // จำกัดจำนวนจุด (กันกราฟรก)
+            logs = logs.slice(-15);
+
+            // เตรียมข้อมูลกราฟ
+            const labels = logs.map(l => l.time || "--:--");
+            const tVals  = logs.map(l => parseFloat(l.temp) || 0);
+            const hVals  = logs.map(l => parseFloat(l.humidity) || 0);
+            const lVals  = logs.map(l => parseFloat(l.light) || 0);
+
+            renderTempChart(labels, tVals);
+            renderHumChart(labels, hVals);
+            renderLightChart(labels, lVals);
+        }
 
         // 1. ฟังก์ชันวาดกราฟอุณหภูมิ (เส้นเดียว)
         function renderTempChart(labels, tempPoints) {
