@@ -144,6 +144,7 @@
         const historyRef = ref(db, 'sensor_history');
 
         let chartT, chartH, chartL; // ตัวแปรสำหรับเก็บ Instance ของกราฟแต่ละตัว
+        let allLogs = [];
         let selectedDate = null;
         document.getElementById("datePicker").addEventListener("change", (e) => {
             selectedDate = e.target.value; // format: YYYY-MM-DD
