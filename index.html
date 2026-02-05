@@ -186,9 +186,10 @@
                 const start = new Date(selectedDate + "T00:00:00").getTime();
                 const end   = new Date(selectedDate + "T23:59:59").getTime();
 
-                logs = logs.filter(l =>
-                    l.timestamp >= start && l.timestamp <= end
-                );
+                logs = logs.filter(l => {
+                    const ts = l.timestamp < 1e12 ? l.timestamp * 1000 : l.timestamp;
+                    return ts >= start && ts <= end;
+                });
             }
 
             logs.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
