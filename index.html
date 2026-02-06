@@ -181,13 +181,6 @@
             if (!data) return;
 
             allLogs = Object.values(data);
-            // 🔥 หา "วันล่าสุดที่มีข้อมูล"
-            const dates = [...new Set(allLogs.map(l => l.date))].sort();
-            selectedDate = dates[dates.length - 1];
-
-            // เซ็ต date picker ให้ตรงกับวันนั้น
-            document.getElementById("datePicker").value = selectedDate;
-
             updateCharts(); // วาดกราฟครั้งแรก
         });
 
@@ -282,11 +275,6 @@
 
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            
-            if (logs.length === 0) {
-            alert("วันที่เลือกไม่มีข้อมูล");
-            return;
-            }
         }
 
 
