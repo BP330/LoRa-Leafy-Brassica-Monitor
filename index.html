@@ -81,19 +81,19 @@
 
     <div class="grid">
         <div class="card">
-            <div class="label">🌡️ อุณหภูมิ</div>
+            <div class="label">อุณหภูมิ</div>
             <div id="temp" class="value">--</div>
             <div class="unit">องศาเซลเซียส</div>
             <div id="temp-status" class="status"></div>
         </div>
         <div class="card">
-            <div class="label">💧 ความชื้นดิน</div>
+            <div class="label">ความชื้นดิน</div>
             <div id="hum" class="value">--</div>
             <div class="unit">เปอร์เซ็นต์ (%)</div>
             <div id="hum-status" class="status"></div>
         </div>
         <div class="card">
-            <div class="label">☀️ ความเข้มแสง</div>
+            <div class="label">ความเข้มแสง</div>
             <div id="light" class="value">--</div>
             <div class="unit">Lux</div>
             <div id="light-status" class="status"></div>
@@ -108,17 +108,17 @@
     </div>
 
     <div class="chart-container">
-        <div class="label" style="margin-bottom: 10px;">🌡️ แนวโน้มอุณหภูมิ (°C)</div>
+        <div class="label" style="margin-bottom: 10px;">แนวโน้มอุณหภูมิ (°C)</div>
         <canvas id="tempChart"></canvas>
     </div>
 
     <div class="chart-container">
-        <div class="label" style="margin-bottom: 10px;">💧 แนวโน้มความชื้นดิน (%)</div>
+        <div class="label" style="margin-bottom: 10px;">แนวโน้มความชื้นดิน (%)</div>
         <canvas id="humChart"></canvas>
     </div>
 
     <div class="chart-container">
-        <div class="label" style="margin-bottom: 10px;">☀️ แนวโน้มความเข้มแสง (Lux)</div>
+        <div class="label" style="margin-bottom: 10px;">แนวโน้มความเข้มแสง (Lux)</div>
         <canvas id="lightChart"></canvas>
     </div>
 
@@ -187,7 +187,7 @@
         function updateCharts() {
             let logs = [...allLogs];
 
-            // 👉 กรองตามวันที่ (ใช้ date ตรง ๆ เพราะ Firebase ของคุณเป็น YYYY-MM-DD)
+            // กรองตามวันที่ (ใช้ date ตรง ๆ เพราะ Firebase ของคุณเป็น YYYY-MM-DD)
             if (selectedDate) {
                 logs = logs.filter(l => l.date === selectedDate);
             }
@@ -199,7 +199,7 @@
             });
 
             // จำกัดจำนวนจุด (กันกราฟรก)
-            logs = logs.slice(-15);
+            logs = logs.limitToLast(50);
 
             // เตรียมข้อมูลกราฟ
             const labels = logs.map(l => l.time || "--:--");
@@ -230,7 +230,7 @@
                 return;
             }
 
-            // 🔹 header ของ CSV
+            // header ของ CSV
             const headers = [
                 "date",
                 "time",
@@ -241,7 +241,7 @@
                 "timestamp"
             ];
 
-            // 🔹 แปลงเป็น CSV row
+            // แปลงเป็น CSV row
             const rows = logs.map(l => [
                 l.date || "",
                 l.time || "",
@@ -356,22 +356,22 @@
         // ฟังก์ชันเช็คสถานะ (ใช้ Logic เดิมของคุณ)
         function checkStatus(temp, humidity, realLux) {
             const tStat = document.getElementById("temp-status");
-            if (temp <= -100) { tStat.innerHTML = "❌ เซนเซอร์หลุด"; tStat.style.color = "gray"; }
-            else if (temp > 30) { tStat.innerHTML = "🔥 ร้อนเกินไป"; tStat.style.color = "red"; }
-            else if (temp > 25 ) { tStat.innerHTML = "⚠️ เฝ้าระวัง"; tStat.style.color = "#ff5722"; }
-            else if (temp >= 15) { tStat.innerHTML = "✅ ปกติ"; tStat.style.color = "green"; }
-            else { tStat.innerHTML = "❄️ เย็นเกินไป"; tStat.style.color = "blue"; }
+            if (temp <= -100) { tStat.innerHTML = "เซนเซอร์หลุด"; tStat.style.color = "gray"; }
+            else if (temp > 30) { tStat.innerHTML = "ร้อนเกินไป"; tStat.style.color = "red"; }
+            else if (temp > 25 ) { tStat.innerHTML = "เฝ้าระวัง"; tStat.style.color = "#ff5722"; }
+            else if (temp >= 15) { tStat.innerHTML = "ปกติ"; tStat.style.color = "green"; }
+            else { tStat.innerHTML = "เย็นเกินไป"; tStat.style.color = "blue"; }
 
             const hStat = document.getElementById("hum-status");
-            if (humidity < 60) { hStat.innerHTML = "🏜️ ดินแห้งไป"; hStat.style.color = "grey"; }
-            else if (humidity > 85) { hStat.innerHTML = "🌊 ดินแฉะไป"; hStat.style.color = "blue"; }
-            else { hStat.innerHTML = "✅ เหมาะสม"; hStat.style.color = "green"; }
+            if (humidity < 60) { hStat.innerHTML = "ดินแห้งไป"; hStat.style.color = "grey"; }
+            else if (humidity > 85) { hStat.innerHTML = "ดินแฉะไป"; hStat.style.color = "blue"; }
+            else { hStat.innerHTML = "เหมาะสม"; hStat.style.color = "green"; }
 
             const lStat = document.getElementById("light-status");
-            if (realLux < 3000) { lStat.innerHTML = "🌑 แสงน้อยมาก"; lStat.style.color = "gray"; }
-            else if (realLux < 10000) { lStat.innerHTML = "⛅ แสงค่อนข้างน้อย"; lStat.style.color = "orange"; }
-            else if (realLux <= 50000) { lStat.innerHTML = "✅ แสงพอเหมาะ"; lStat.style.color = "green"; }
-            else { lStat.innerHTML = "☀️ แสงจ้าเกินไป"; lStat.style.color = "red"; }
+            if (realLux < 3000) { lStat.innerHTML = "แสงน้อยมาก"; lStat.style.color = "gray"; }
+            else if (realLux < 10000) { lStat.innerHTML = "แสงค่อนข้างน้อย"; lStat.style.color = "orange"; }
+            else if (realLux <= 50000) { lStat.innerHTML = "แสงพอเหมาะ"; lStat.style.color = "green"; }
+            else { lStat.innerHTML = "แสงจ้าเกินไป"; lStat.style.color = "red"; }
         }
     </script>
 </body>
