@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>LoRa Leafy Brassica Monitor</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://www.gstatic.com https://cdn.jsdelivr.net 'unsafe-inline';">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { 
@@ -102,7 +103,7 @@
     <div style="margin:20px 0;"> 
         📅 เลือกวันที่: <input type="date" id="datePicker"> 
          <button id="downloadCSV" style="margin-left:10px;">
-        ⬇️ ดาวน์โหลด CSV
+        ดาวน์โหลด CSV
         </button>
     </div>
 
@@ -178,23 +179,18 @@
         onValue(historyRef, (snapshot) => {
             const data = snapshot.val();
             if (!data) return;
-            
-            // เอาเฉพาะ log ที่มี date จริง
-            allLogs = Object.values(data).filter(l => typeof l.date === "string");
 
-            if (allLogs.length === 0) return;
-
-            const dates = [...new Set(allLogs.map(l => l.date))].sort();
-            selectedDate = dates[dates.length - 1];
-            document.getElementById("datePicker").value = selectedDate;
+            allLogs = Object.values(data);
             updateCharts(); // วาดกราฟครั้งแรก
         });
 
         function updateCharts() {
-            // กรองตามวันที่ (ใช้ date ตรง ๆ เพราะ Firebase ของคุณเป็น YYYY-MM-DD)
-            if (!selectedDate || allLogs.length === 0) return;
-            let logs = allLogs.filter(l => l.date === selectedDate);
+            let logs = [...allLogs];
 
+            // กรองตามวันที่ (ใช้ date ตรง ๆ เพราะ Firebase ของคุณเป็น YYYY-MM-DD)
+            if (selectedDate) {
+                logs = logs.filter(l => l.date === selectedDate);
+            }
             // เรียงตามเวลา (กัน Firebase เรียงมั่ว)
             logs.sort((a, b) => {
                 const ta = a.timestamp || 0;
@@ -203,7 +199,7 @@
             });
 
             // จำกัดจำนวนจุด (กันกราฟรก)
-            logs = logs.slice(-50);
+            logs = logs.slice(-15);
 
             // เตรียมข้อมูลกราฟ
             const labels = logs.map(l => l.time || "--:--");
