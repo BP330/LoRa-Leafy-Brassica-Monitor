@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>LoRa Leafy Brassica Monitor</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://www.gstatic.com https://cdn.jsdelivr.net 'unsafe-inline';">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { 
@@ -190,7 +189,7 @@
 
         function updateCharts() {
             // กรองตามวันที่ (ใช้ date ตรง ๆ เพราะ Firebase ของคุณเป็น YYYY-MM-DD)
-            if (selectedDate || allLogs.length === 0) return;
+            if (!selectedDate || allLogs.length === 0) return;
             let logs = allLogs.filter(l => l.date === selectedDate);
 
             // เรียงตามเวลา (กัน Firebase เรียงมั่ว)
