@@ -179,8 +179,11 @@
             const data = snapshot.val();
             if (!data) return;
             
-            allLogs = Object.values(data);
-             // ตั้งวันล่าสุดที่มีข้อมูล
+            // เอาเฉพาะ log ที่มี date จริง
+            allLogs = Object.values(data).filter(l => typeof l.date === "string");
+
+            if (allLogs.length === 0) return;
+
             const dates = [...new Set(allLogs.map(l => l.date))].sort();
             selectedDate = dates[dates.length - 1];
             document.getElementById("datePicker").value = selectedDate;
