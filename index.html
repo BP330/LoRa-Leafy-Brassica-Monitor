@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>LoRa Leafy Brassica Monitor</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://www.gstatic.com https://cdn.jsdelivr.net 'unsafe-inline';">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { 
@@ -179,18 +178,20 @@
         onValue(historyRef, (snapshot) => {
             const data = snapshot.val();
             if (!data) return;
-
+            
             allLogs = Object.values(data);
+             // ตั้งวันล่าสุดที่มีข้อมูล
+            const dates = [...new Set(allLogs.map(l => l.date))].sort();
+            selectedDate = dates[dates.length - 1];
+            document.getElementById("datePicker").value = selectedDate;
             updateCharts(); // วาดกราฟครั้งแรก
         });
 
         function updateCharts() {
-            let logs = [...allLogs];
-
             // กรองตามวันที่ (ใช้ date ตรง ๆ เพราะ Firebase ของคุณเป็น YYYY-MM-DD)
-            if (selectedDate) {
-                logs = logs.filter(l => l.date === selectedDate);
-            }
+            if (selectedDate || allLogs.length === 0) return;
+            let logs = allLogs.filter(l => l.date === selectedDate);
+
             // เรียงตามเวลา (กัน Firebase เรียงมั่ว)
             logs.sort((a, b) => {
                 const ta = a.timestamp || 0;
@@ -199,7 +200,7 @@
             });
 
             // จำกัดจำนวนจุด (กันกราฟรก)
-            logs = logs.limitToLast(50);
+            logs = logs.slice(-50);
 
             // เตรียมข้อมูลกราฟ
             const labels = logs.map(l => l.time || "--:--");
